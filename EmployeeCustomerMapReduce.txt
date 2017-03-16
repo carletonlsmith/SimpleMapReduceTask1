@@ -1,0 +1,40 @@
+### HADOOP STREAMING ###
+### This simple MapReduce program parses through two data sets
+### and prints out the names of customers that also have the
+### same name as employees
+
+##### MAPPER CODE
+
+#!/usr/bin/python
+import sys # input comes from STDIN (standard input)
+for line in sys.stdin:
+    # remove leading and trailing whitespace
+    line = line.strip()
+    split = line.split("|")
+    if 'EMP' in split[0]: # check if from ee or cust data
+        print (split[1],split[2])+'\t'+split[0]+'\t'+"_Employee" # Mark as "customer"
+    else: # cust data
+        print (split[1],split[2])+'\t'+split[0]+split[3]'\t'+"_Customer" # Mark as "Employee"
+		
+
+
+##### REDUCER CODE
+#!/usr/bin/python
+import sys
+cust_dict = {}
+ee_dict = {}
+
+for line in sys.stdin:
+    # remove leading and trailing whitespace
+    line = line.strip()
+    # parse the input we got from mapper.py
+    split = line.split('\t')
+    
+    if '_Employee' in split[2]: # check if it's from employee file
+        ee_dict[split[0]] = split[1]
+    else:
+        cust_dict[split[0]] = (split[1],split[2])
+for cust in cust_dict:
+    for emp in ee_dict:
+        if cust == emp:
+            print emp + '\t' + ee_dict[emp] +'\t' + cust_dict[cust]
